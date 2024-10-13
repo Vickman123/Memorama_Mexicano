@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorama Mexicano</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- CSS -->
+    <style>
+        :root {
+            --w: calc(70vw / 6);
+            --h: calc(70vh / 4);
+        }
+
+        * {
+            transition: all 0.5s;
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+            background: black; /* Fondo negro */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-family: calibri;
+            color: white; /* Texto blanco */
+        }
+
+        h1 {
+            font-size: 3em;
+            margin: 20px 0;
+        }
+
+        .parte-verde {
+            color: lime; /* Verde para MEMOR */
+        }
+
+        .parte-blanca {
+            color: white; /* Blanco para AMA */
+        }
+
+        .parte-roja {
+            color: red; /* Rojo para XICANO */
+        }
+
+        div {
+            display: inline-block;
+        }
+
+        .area-tarjeta,
+        .tarjeta,
+        .cara {
+            cursor: pointer;
+            width: var(--w);
+            min-width: 100px;
+            height: var(--h);
+        }
+
+        .tarjeta {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+        }
+
+        .cara {
+            position: absolute;
+            backface-visibility: hidden;
+            box-shadow: inset 0 0 0 5px lightgray; /* Sombra más clara */
+            font-size: 120%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .trasera {
+            background-color: gray; /* Color de la parte trasera */
+            transform: rotateY(180deg);
+        }
+
+        .superior {
+            background: linear-gradient(orange, darkorange);
+        }
+
+        .nuevo-juego {
+            cursor: pointer;
+            background: linear-gradient(orange, darkorange);
+            padding: 20px;
+            border-radius: 50px;
+            border: white 5px solid;
+            font-size: 130%;
+            color: white; /* Texto del botón en blanco */
+        }
+
+        .menu-niveles {
+            margin-bottom: 20px;
+        }
+
+        .menu-niveles button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            color: white; /* Texto en blanco */
+            background-color: darkorange; /* Fondo de los botones */
+            border: none;
+            border-radius: 5px;
+        }
+
+        .mensaje-exito {
+            display: none;
+            font-size: 24px;
+            color: lightgreen; /* Mensaje de éxito en verde claro */
+            margin-top: 20px;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 16px;
+            color: lightgray; /* Color del pie de página */
+        }
+    </style>
+
+    <!-- HTML -->
+    <h1>
+        <span class="parte-verde">MEMOR</span>
+        <span class="parte-blanca">AMA</span>
+        <span class="parte-roja">MEXICANO</span>
+    </h1>
+    <div class="menu-niveles">
+        <button onclick="generarTablero(16)">Fácil (16 cartas)</button>
+        <button onclick="generarTablero(36)">Normal (36 cartas)</button>
+        <button onclick="generarTablero(64)">Difícil (64 cartas)</button>
+    </div>
+
+    <div id="tablero"></div>
+    <div class="mensaje-exito" id="mensajeExito">¡Felicidades! Has encontrado todas las parejas.</div>
+
+    <br>
+
+    <div class="nuevo-juego" onclick="generarTablero()">
+        Nuevo Juego
+    </div>
+
+    <footer>Hecho por Leonardo Cerecedo Garavito</footer>
+
+    <!-- JS -->
+    <script>
+        let estadosCapitales = [
+            { estado: "Aguascalientes", capital: "Aguascalientes" },
+            { estado: "Baja California", capital: "Mexicali" },
+            { estado: "Baja California Sur", capital: "La Paz" },
+            { estado: "Campeche", capital: "San Francisco de Campeche" },
+            { estado: "Chiapas", capital: "Tuxtla Gutiérrez" },
+            { estado: "Chihuahua", capital: "Chihuahua" },
+            { estado: "Ciudad de México", capital: "Ciudad de México" },
+            { estado: "Coahuila", capital: "Saltillo" },
+            { estado: "Colima", capital: "Colima" },
+            { estado: "Durango", capital: "Victoria de Durango" },
+            { estado: "Guanajuato", capital: "Guanajuato" },
+            { estado: "Guerrero", capital: "Chilpancingo" },
+            { estado: "Hidalgo", capital: "Pachuca" },
+            { estado: "Jalisco", capital: "Guadalajara" },
+            { estado: "Estado de México", capital: "Toluca" },
+            { estado: "Michoacán", capital: "Morelia" },
+            { estado: "Morelos", capital: "Cuernavaca" },
+            { estado: "Nayarit", capital: "Tepic" },
+            { estado: "Nuevo León", capital: "Monterrey" },
+            { estado: "Oaxaca", capital: "Oaxaca de Juárez" },
+            { estado: "Puebla", capital: "Puebla" },
+            { estado: "Querétaro", capital: "Santiago de Querétaro" },
+            { estado: "Quintana Roo", capital: "Chetumal" },
+            { estado: "San Luis Potosí", capital: "San Luis Potosí" },
+            { estado: "Sinaloa", capital: "Culiacán" },
+            { estado: "Sonora", capital: "Hermosillo" },
+            { estado: "Tabasco", capital: "Villahermosa" },
+            { estado: "Tamaulipas", capital: "Ciudad Victoria" },
+            { estado: "Tlaxcala", capital: "Tlaxcala" },
+            { estado: "Veracruz", capital: "Xalapa" },
+            { estado: "Yucatán", capital: "Mérida" },
+            { estado: "Zacatecas", capital: "Zacatecas" }
+        ];
+
+        let selecciones = [];
+        let bloqueado = false; // Evitar seleccionar más de dos cartas a la vez
+        let cartasMostradas = [];
+        let parejasEncontradas = [];
+
+        function generarTablero(cartasCantidad = 16) {
+            let tablero = document.getElementById("tablero");
+            let tarjetas = [];
+            selecciones = [];
+            cartasMostradas = [];
+            parejasEncontradas = [];
+            bloqueado = false;
+
+            let parejas = estadosCapitales.slice(0, cartasCantidad / 2); // Obtener el número adecuado de pares
+            let cartas = [];
+
+            parejas.forEach(par => {
+                cartas.push({ tipo: "estado", texto: par.estado });
+                cartas.push({ tipo: "capital", texto: par.capital });
+            });
+
+            cartas.sort(() => Math.random() - 0.5); // Mezclar las cartas
+
+            for (let i = 0; i < cartasCantidad; i++) {
+                tarjetas.push(`
+                <div class="area-tarjeta" onclick="seleccionarTarjeta(${i})">
+                    <div class="tarjeta" id="tarjeta${i}">
+                        <div class="cara trasera" id="trasera${i}">
+                            ${cartas[i].texto}
+                        </div>
+                        <div class="cara superior">
+                            <i class="far fa-question-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                `);
+                cartasMostradas.push(cartas[i]);
+            }
+            tablero.innerHTML = tarjetas.join("");
+            mostrarCartasPor5Segundos(); // Muestra las cartas por 5 segundos
+        }
+
+        function mostrarCartasPor5Segundos() {
+            cartasMostradas.forEach((_, i) => {
+                let tarjeta = document.getElementById("tarjeta" + i);
+                tarjeta.style.transform = "rotateY(180deg)";
+            });
+            setTimeout(() => {
+                cartasMostradas.forEach((_, i) => {
+                    let tarjeta = document.getElementById("tarjeta" + i);
+                    tarjeta.style.transform = "rotateY(0deg)";
+                });
+            }, 5000);
+        }
+
+        function seleccionarTarjeta(i) {
+            if (bloqueado || selecciones.includes(i) || parejasEncontradas.includes(i)) return;
+
+            selecciones.push(i);
+            let tarjeta = document.getElementById("tarjeta" + i);
+            tarjeta.style.transform = "rotateY(180deg)";
+
+            if (selecciones.length === 2) {
+                bloqueado = true;
+                setTimeout(verificarSeleccion, 1000); // Verificar después de 1 segundo
+            }
+        }
+
+        function verificarSeleccion() {
+            const [indice1, indice2] = selecciones;
+            const carta1 = cartasMostradas[indice1];
+            const carta2 = cartasMostradas[indice2];
+
+            // Verificar si las cartas seleccionadas son un par correcto
+            const esParCorrecto =
+                (carta1.tipo === "estado" && carta2.tipo === "capital" && encontrarCapital(carta1.texto) === carta2.texto) ||
+                (carta1.tipo === "capital" && carta2.tipo === "estado" && encontrarCapital(carta2.texto) === carta1.texto);
+
+            if (esParCorrecto) {
+                parejasEncontradas.push(indice1, indice2);
+                if (parejasEncontradas.length === cartasMostradas.length) {
+                    mostrarMensajeExito(); // Muestra el mensaje de éxito
+                }
+            } else {
+                // Si no coinciden, voltear las cartas de nuevo
+                let tarjeta1 = document.getElementById("tarjeta" + indice1);
+                let tarjeta2 = document.getElementById("tarjeta" + indice2);
+                tarjeta1.style.transform = "rotateY(0deg)";
+                tarjeta2.style.transform = "rotateY(0deg)";
+            }
+
+            selecciones = [];
+            bloqueado = false;
+        }
+
+        function encontrarCapital(estado) {
+            for (let par of estadosCapitales) {
+                if (par.estado === estado) {
+                    return par.capital;
+                }
+            }
+            return null;
+        }
+
+        function mostrarMensajeExito() {
+            let mensaje = document.getElementById("mensajeExito");
+            mensaje.style.display = "block"; // Muestra el mensaje de éxito
+        }
+    </script>
+</body>
+
+</html>
